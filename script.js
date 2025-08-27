@@ -53,9 +53,9 @@ googleSignIn?.addEventListener('click', async () => {
   try {
     loginStatus.textContent = '正在打开登录…';
     await signInWithPopup(auth, provider);
-  } catch (e) {
-    console.error(e);
-    loginStatus.textContent = '登录失败，请重试';
+    } catch (e) {
+    console.error('Auth error =>', e);
+    loginStatus.textContent = `登录失败：${e.code}`; // 例如 auth/unauthorized-domain
   }
 });
 
