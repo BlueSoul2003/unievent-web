@@ -1,22 +1,114 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>UniEvent Connect</title>
-    <!-- Basic styling -->
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <header>
-      <h1>UniEvent Connect</h1>
-      <div class="mode-switch">
-        <button id="studentModeBtn" class="active">Student</button>
-        <button id="organizerModeBtn">Organizer</button>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>UniEvent Connect</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- 登录浮层（未登录显示） -->
+  <div id="loginOverlay" class="login-wrap" style="display:none;">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-badge">UE</div>
+        <div>
+          <h1 style="margin:0;">UniEvent Connect</h1>
+          <div class="muted">Discover • Register • Grow</div>
+        </div>
       </div>
-    </header>
-    <main id="app"></main>
-    <!-- Script -->
-    <script src="script.js"></script>
-  </body>
+      <p class="muted">使用 Google 登录。组织者将解锁管理功能。</p>
+      <button id="googleSignIn" class="btn">使用 Google 登录</button>
+      <div id="loginStatus" class="muted" style="margin-top:8px;"></div>
+    </div>
+  </div>
+
+  <!-- 顶部栏 + 视图切换（登录后显示） -->
+  <header>
+    <h1>UniEvent Connect</h1>
+    <div class="right-side">
+      <span id="whoami" class="whoami"></span>
+      <button id="studentBtn" class="pill active">Student</button>
+      <button id="organizerBtn" class="pill">Organizer</button>
+      <button id="signoutBtn" class="pill outline">登出</button>
+    </div>
+  </header>
+
+  <!-- 主体 -->
+  <main id="appRoot">
+    <!-- 学生视图 -->
+    <section id="studentView">
+      <div class="card">
+        <h2>发现活动</h2>
+        <div class="tag-row" id="tagRow"></div>
+        <input id="searchBox" class="input" placeholder="按标题/描述/地点搜索">
+        <button id="myTicketsBtn" class="btn small">我的票券</button>
+      </div>
+
+      <div id="eventsGrid" class="grid"></div>
+      <div id="emptyHint" class="muted" style="display:none; margin:8px 6px;">当前没有匹配的活动</div>
+
+      <div id="ticketsPanel" class="card" style="display:none;">
+        <h2>我的票券</h2>
+        <div id="ticketsList" class="stack"></div>
+        <button id="backToDiscover" class="pill outline">返回</button>
+      </div>
+    </section>
+
+    <!-- 组织者视图 -->
+    <section id="organizerView" style="display:none;">
+      <div class="card">
+        <h2>发布新活动</h2>
+        <div class="grid2">
+          <input id="evtTitle" class="input" placeholder="标题" />
+          <input id="evtVenue" class="input" placeholder="地点" />
+          <input id="evtDate" class="input" type="date" />
+          <input id="evtTime" class="input" type="time" />
+          <input id="evtTags" class="input" placeholder="标签（逗号分隔）" />
+          <input id="evtCap"  class="input" type="number" placeholder="人数上限（可选）" />
+        </div>
+        <textarea id="evtDesc" class="input" rows="4" placeholder="描述（做什么/适合谁/收获）"></textarea>
+        <button id="postBtn" class="btn">发布活动</button>
+      </div>
+
+      <div class="card">
+        <h2>我发布的活动</h2>
+        <div id="myEventsList" class="stack"></div>
+      </div>
+    </section>
+  </main>
+
+  <!--  Firebase：一定要在 script.js 之前，并且 type="module" -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore, collection, collectionGroup, doc, addDoc, setDoc, getDoc, getDocs,
+      onSnapshot, query, where, orderBy, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // ⬇ 把这里换成你自己的 Firebase 配置（Project settings → Web app → Config）
+    const firebaseConfig = {
+      apiKey: "你的 apiKey",
+      authDomain: "你的 authDomain",
+      projectId: "你的 projectId",
+      appId: "你的 appId"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // 暴露给 script.js
+    window.__fb = {
+      auth, db, provider, signInWithPopup, onAuthStateChanged, signOut,
+      collection, collectionGroup, doc, addDoc, setDoc, getDoc, getDocs,
+      onSnapshot, query, where, orderBy, serverTimestamp
+    };
+  </script>
+
+  <!-- 你的业务逻辑，一定要 type="module" 并且在上面那段之后 -->
+  <script type="module" src="script.js"></script>
+</body>
 </html>
